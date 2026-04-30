@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LDC 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ob: #2563EB; --ob-light: #DBEAFE; --ob-dark: #1E40AF;
+  --rv: #059669; --rv-light: #D1FAE5; --rv-dark: #065F46;
+  --sr: #7C3AED; --sr-light: #EDE9FE; --sr-dark: #5B21B6;
+  --dc: #DC2626; --dc-light: #FEE2E2; --dc-dark: #991B1B;
+  --bg: #0A0A0F;
+  --surface: #13131A;
+  --surface2: #1C1C27;
+  --border: rgba(255,255,255,0.07);
+  --text: #F0F0F8;
+  --muted: #7070A0;
+  --accent: #6366F1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 100; gap: 12px;
+}
+.splash-title { font-family: 'Syne', sans-serif; font-size: clamp(48px, 10vw, 96px); font-weight: 800; letter-spacing: -3px; background: linear-gradient(135deg, #fff 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.splash-sub { font-size: 14px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; }
+.splash-btns { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; justify-content: center; }
+.splash-btn { padding: 14px 28px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; border: none; transition: transform 0.15s, opacity 0.15s; }
+.splash-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-leader { background: var(--accent); color: #fff; }
+.btn-admin { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+/* ── ADMIN LOGIN ── */
+#admin-login {
+  position: fixed; inset: 0; background: var(--bg);
+  display: none; align-items: center; justify-content: center; z-index: 99;
+}
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 40px; width: 340px; }
+.login-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.login-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; margin-bottom: 14px; outline: none; }
+.login-input:focus { border-color: var(--accent); }
+.login-btn { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.login-btn:hover { opacity: 0.88; }
+.login-err { font-size: 12px; color: #F87171; margin-top: 10px; display: none; }
+.back-link { font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 16px; display: inline-block; }
+.back-link:hover { color: var(--text); }
+
+/* ── GROUP PICK (leader) ── */
+#group-pick {
+  position: fixed; inset: 0; background: var(--bg);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 98; gap: 16px; padding: 24px;
+}
+.pick-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; margin-bottom: 4px; text-align: center; }
+.pick-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; text-align: center; }
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 420px; }
+.pick-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; text-align: center; }
+.pick-card:hover { transform: translateY(-3px); }
+.pick-card.ob:hover { border-color: var(--ob); }
+.pick-card.rv:hover { border-color: var(--rv); }
+.pick-card.sr:hover { border-color: var(--sr); }
+.pick-card.dc:hover { border-color: var(--dc); }
+.pick-dot { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+.pick-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; }
+
+/* ── APP SHELL ── */
+#app { display: none; height: 100vh; flex-direction: column; }
+.topbar { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface); gap: 14px; flex-shrink: 0; }
+.topbar-logo { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+.topbar-group { font-size: 12px; color: var(--muted); margin-left: auto; }
+.topbar-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+.topbar-pts { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+
+/* ── NAV TABS ── */
+.tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; overflow-x: auto; }
+.tab { flex: 1; min-width: 80px; padding: 13px 8px; text-align: center; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; white-space: nowrap; letter-spacing: 0.5px; text-transform: uppercase; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+/* ── PAGES ── */
+.pages { flex: 1; overflow-y: auto; padding: 20px 16px; }
+.page { display: none; }
+.page.active { display: block; animation: fadeUp 0.2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* stat row */
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 12px; text-align: center; }
+.stat-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; }
+.stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* section title */
+.sec { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+/* group card on dashboard */
+.grp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+.grp-dot { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.grp-name { flex: 1; font-size: 14px; font-weight: 500; }
+.grp-bar-wrap { flex: 2; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.grp-bar { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.grp-pts { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; min-width: 60px; text-align: right; }
+
+/* leaderboard */
+.lb-row { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
+.lb-row.me { border-color: var(--accent); }
+.lb-rank { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; min-width: 28px; }
+.lb-name { flex: 1; font-size: 14px; font-weight: 500; }
+.lb-pts { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+.trophy { font-size: 16px; }
+
+/* store */
+.store-sel-wrap { margin-bottom: 16px; }
+.store-sel-lbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.store-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.store-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+.s-emoji { font-size: 30px; margin-bottom: 8px; display: block; }
+.s-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.s-desc { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.s-footer { display: flex; align-items: center; justify-content: space-between; }
+.s-pts { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--accent); }
+.s-btn { font-size: 12px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.12s; }
+.s-btn:hover { background: var(--surface2); }
+.s-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* history */
+.tx-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.tx-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.tx-plus { background: rgba(16,185,129,0.15); }
+.tx-minus { background: rgba(239,68,68,0.15); }
+.tx-body { flex: 1; }
+.tx-desc { font-size: 13px; font-weight: 500; }
+.tx-grp { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.tx-amt { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.tx-time { font-size: 11px; color: var(--muted); }
+
+/* admin form */
+.admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.admin-card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+.form-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.form-input, .form-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; width: 100%; }
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.form-select option { background: var(--surface2); }
+.log-btn { width: 100%; margin-top: 4px; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s; }
+.log-btn:hover { opacity: 0.85; }
+
+/* toast */
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 500; transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s; opacity: 0; z-index: 200; white-space: nowrap; }
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast.ok { border-color: #10B981; color: #10B981; }
+#toast.err { border-color: #EF4444; color: #EF4444; }
+
+/* loading overlay */
+#loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 300; font-family: 'Syne', sans-serif; font-size: 14px; color: var(--muted); letter-spacing: 2px; }
+
+.empty-state { text-align: center; padding: 40px 0; color: var(--muted); font-size: 14px; }
+
+select { -webkit-appearance: auto; }
+</style>
+</head>
+<body>
+
+<div id="loading">LOADING…</div>
+
+<!-- SPLASH -->
+<div id="splash" style="display:none;">
+  <div class="splash-title">LDC 2026</div>
+  <div class="splash-sub">Leadership Development Camp</div>
+  <div class="splash-btns">
+    <button class="splash-btn btn-leader" onclick="showGroupPick()">I'm a Group Leader</button>
+    <button class="splash-btn btn-admin" onclick="showAdminLogin()">Admin</button>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="admin-login">
+  <div class="login-card">
+    <div class="login-title">Admin access</div>
+    <div class="login-sub">Enter the admin password to continue</div>
+    <input class="login-input" type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="login-btn" onclick="tryLogin()">Sign in</button>
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+    <div class="back-link" onclick="backToSplash()">← Back</div>
+  </div>
+</div>
+
+<!-- GROUP PICK -->
+<div id="group-pick">
+  <div class="pick-title">Select your group</div>
+  <div class="pick-sub">Choose the group you lead</div>
+  <div class="pick-grid">
+    <div class="pick-card ob" onclick="enterAsLeader('Obedience')">
+      <div class="pick-dot" style="background:var(--ob-light);color:var(--ob-dark);">OB</div>
+      <div class="pick-name">Obedience</div>
+    </div>
+    <div class="pick-card rv" onclick="enterAsLeader('Reverence')">
+      <div class="pick-dot" style="background:var(--rv-light);color:var(--rv-dark);">RV</div>
+      <div class="pick-name">Reverence</div>
+    </div>
+    <div class="pick-card sr" onclick="enterAsLeader('Self-Respect')">
+      <div class="pick-dot" style="background:var(--sr-light);color:var(--sr-dark);">SR</div>
+      <div class="pick-name">Self-Respect</div>
+    </div>
+    <div class="pick-card dc" onclick="enterAsLeader('Discipline')">
+      <div class="pick-dot" style="background:var(--dc-light);color:var(--dc-dark);">DC</div>
+      <div class="pick-name">Discipline</div>
+    </div>
+  </div>
+  <div class="back-link" onclick="backToSplash()">← Back</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">LDC 2026</div>
+    <div id="topbar-right" style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+      <span class="topbar-group" id="topbar-label"></span>
+      <span class="topbar-badge" id="topbar-badge"></span>
+      <span class="topbar-pts" id="topbar-pts"></span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="pages" id="pages"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ─── REPLACE THESE WITH YOUR FIREBASE CONFIG ───────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyC2fS4l4cjUQwOWEcWthJHKAYZCdvA7Cec",
+  authDomain: "ldc2026-4d566.firebaseapp.com",
+  databaseURL: "https://ldc2026-4d566-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ldc2026-4d566",
+  storageBucket: "ldc2026-4d566.firebasestorage.app",
+  messagingSenderId: "397142638670",
+  appId: "1:397142638670:web:d2f225a5540233035b831f",
+  measurementId: "G-6P8HJBL93D"
+};
+// ─── ADMIN PASSWORD ─────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = "ldc2026admin";
+// ────────────────────────────────────────────────────────────────────────────
+
+const GROUPS = [
+  { id: 'Obedience',   init: 'OB', color: '#2563EB', light: '#DBEAFE', dark: '#1E40AF' },
+  { id: 'Reverence',   init: 'RV', color: '#059669', light: '#D1FAE5', dark: '#065F46' },
+  { id: 'Self-Respect',init: 'SR', color: '#7C3AED', light: '#EDE9FE', dark: '#5B21B6' },
+  { id: 'Discipline',  init: 'DC', color: '#DC2626', light: '#FEE2E2', dark: '#991B1B' },
+];
+
+const STORE = [
+  { emoji:'🍫', name:'Snack pack',      desc:'Assorted snacks for your group', pts:30 },
+  { emoji:'🏅', name:'Bonus badge',     desc:'Exclusive LDC 2026 achievement badge', pts:80 },
+  { emoji:'⏰', name:'Extra free time', desc:'30 min extra leisure time', pts:120 },
+  { emoji:'🎮', name:'Game night pass', desc:'Priority seat at game night', pts:60 },
+];
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+let currentRole = null; // 'leader' | 'admin'
+let myGroup     = null; // group id string for leaders
+let livePoints  = {};
+let liveTx      = [];
+
+// ── init DB defaults ───────────────────────────────────────────────────────
+async function initDB() {
+  const snap = await get(ref(db, 'points'));
+  if (!snap.exists()) {
+    const init = {};
+    GROUPS.forEach(g => init[g.id] = 0);
+    await set(ref(db, 'points'), init);
+  }
+}
+
+// ── realtime listeners ─────────────────────────────────────────────────────
+function startListeners() {
+  onValue(ref(db, 'points'), snap => {
+    livePoints = snap.val() || {};
+    renderCurrentPage();
+    updateTopbar();
+  });
+  onValue(ref(db, 'transactions'), snap => {
+    const raw = snap.val() || {};
+    liveTx = Object.values(raw).sort((a,b) => b.ts - a.ts);
+    renderCurrentPage();
+  });
+}
+
+// ── SPLASH ─────────────────────────────────────────────────────────────────
+window.showGroupPick = () => {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('group-pick').style.display = 'flex';
+};
+window.showAdminLogin = () => {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'flex';
+};
+window.backToSplash = () => {
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('group-pick').style.display = 'none';
+  document.getElementById('splash').style.display = 'flex';
+};
+
+// ── ADMIN LOGIN ─────────────────────────────────────────────────────────────
+window.tryLogin = () => {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    currentRole = 'admin'; myGroup = null;
+    document.getElementById('admin-login').style.display = 'none';
+    launchApp();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+};
+
+// ── LEADER SELECT ───────────────────────────────────────────────────────────
+window.enterAsLeader = (groupId) => {
+  currentRole = 'leader'; myGroup = groupId;
+  document.getElementById('group-pick').style.display = 'none';
+  launchApp();
+};
+
+// ── LAUNCH APP ──────────────────────────────────────────────────────────────
+function launchApp() {
+  buildTabs();
+  document.getElementById('app').style.display = 'flex';
+  updateTopbar();
+  showTab(currentRole === 'admin' ? 'admin' : 'dashboard');
+  startListeners();
+}
+
+function getGroupMeta(id) { return GROUPS.find(g => g.id === id) || GROUPS[0]; }
+
+function updateTopbar() {
+  const lbl = document.getElementById('topbar-label');
+  const badge = document.getElementById('topbar-badge');
+  const pts = document.getElementById('topbar-pts');
+  if (currentRole === 'admin') {
+    lbl.textContent = 'Admin';
+    badge.textContent = 'ADMIN';
+    badge.style.cssText = 'background:rgba(99,102,241,0.2);color:#818CF8;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;';
+    pts.textContent = '';
+  } else {
+    const m = getGroupMeta(myGroup);
+    lbl.textContent = myGroup;
+    badge.textContent = m.init;
+    badge.style.cssText = `background:${m.light};color:${m.dark};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;`;
+    pts.textContent = (livePoints[myGroup] || 0) + ' pts';
+    pts.style.color = m.color;
+  }
+}
+
+// ── TABS ────────────────────────────────────────────────────────────────────
+let activePage = '';
+function buildTabs() {
+  const tabs = currentRole === 'admin'
+    ? [['admin','Admin'],['dashboard','Dashboard'],['leaderboard','Leaderboard'],['history','History']]
+    : [['dashboard','Dashboard'],['leaderboard','Leaderboard'],['store','Store'],['history','History']];
+  document.getElementById('tabs').innerHTML = tabs.map(([id,label]) =>
+    `<div class="tab" id="tab-${id}" onclick="showTab('${id}')">${label}</div>`).join('');
+}
+
+window.showTab = (id) => {
+  activePage = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const t = document.getElementById('tab-'+id);
+  if (t) t.classList.add('active');
+  renderPage(id);
+};
+
+function renderCurrentPage() { if (activePage) renderPage(activePage); }
+
+function renderPage(id) {
+  const pages = document.getElementById('pages');
+  let html = '';
+  if (id === 'dashboard')   html = renderDashboard();
+  if (id === 'leaderboard') html = renderLeaderboard();
+  if (id === 'store')       html = renderStore();
+  if (id === 'history')     html = renderHistory();
+  if (id === 'admin')       html = renderAdmin();
+  pages.innerHTML = `<div class="page active">${html}</div>`;
+  if (id === 'store') attachStoreBtns();
+  if (id === 'admin') attachAdminForm();
+}
+
+// ── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const total = Object.values(livePoints).reduce((s,v) => s+v, 0);
+  const purchases = liveTx.filter(t => t.type === 'purchase').length;
+  const sorted = [...GROUPS].sort((a,b) => (livePoints[b.id]||0) - (livePoints[a.id]||0));
+  const max = Math.max(...GROUPS.map(g => livePoints[g.id]||0), 1);
+
+  return `
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-val">${GROUPS.length}</div><div class="stat-lbl">Groups</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:#6366F1">${total.toLocaleString()}</div><div class="stat-lbl">Pts awarded</div></div>
+    <div class="stat-box"><div class="stat-val">${purchases}</div><div class="stat-lbl">Purchases</div></div>
+  </div>
+  <div class="sec">Group standings</div>
+  ${sorted.map(g => {
+    const pts = livePoints[g.id] || 0;
+    const pct = Math.round(pts / max * 100);
+    const isMe = g.id === myGroup;
+    return `<div class="grp-card" style="${isMe ? `border-color:${g.color}` : ''}">
+      <div class="grp-dot" style="background:${g.light};color:${g.dark}">${g.init}</div>
+      <div class="grp-name">${g.id}${isMe ? ' <span style="font-size:10px;color:var(--muted)">(you)</span>' : ''}</div>
+      <div class="grp-bar-wrap"><div class="grp-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      <div class="grp-pts" style="color:${g.color}">${pts.toLocaleString()}</div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ── LEADERBOARD ─────────────────────────────────────────────────────────────
+function renderLeaderboard() {
+  const sorted = [...GROUPS].sort((a,b) => (livePoints[b.id]||0) - (livePoints[a.id]||0));
+  const trophies = ['🥇','🥈','🥉',''];
+  return `
+  <div class="sec">Rankings</div>
+  ${sorted.map((g,i) => {
+    const pts = livePoints[g.id] || 0;
+    const isMe = g.id === myGroup;
+    return `<div class="lb-row ${isMe ? 'me' : ''}">
+      <div class="lb-rank" style="color:${g.color}">${i+1}</div>
+      <div class="grp-dot" style="background:${g.light};color:${g.dark};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:11px;font-weight:700;flex-shrink:0">${g.init}</div>
+      <div class="lb-name">${g.id}${isMe ? ' <span style="font-size:11px;color:var(--muted)">(you)</span>' : ''}</div>
+      <span class="trophy">${trophies[i] || ''}</span>
+      <div class="lb-pts" style="color:${g.color}">${pts.toLocaleString()} pts</div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ── STORE ────────────────────────────────────────────────────────────────────
+function renderStore() {
+  const myPts = livePoints[myGroup] || 0;
+  return `
+  <div class="store-sel-wrap">
+    <div class="store-sel-lbl">Purchasing as: <strong>${myGroup}</strong> · <span style="color:#6366F1">${myPts} pts available</span></div>
+  </div>
+  <div class="sec">Available rewards</div>
+  <div class="store-grid">
+    ${STORE.map((item,i) => {
+      const canBuy = myPts >= item.pts;
+      return `<div class="store-card">
+        <span class="s-emoji">${item.emoji}</span>
+        <div class="s-name">${item.name}</div>
+        <div class="s-desc">${item.desc}</div>
+        <div class="s-footer">
+          <span class="s-pts">${item.pts} pts</span>
+          <button class="s-btn" data-idx="${i}" ${!canBuy ? 'disabled' : ''}>Redeem</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function attachStoreBtns() {
+  document.querySelectorAll('.s-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const i = parseInt(btn.dataset.idx);
+      const item = STORE[i];
+      const curPts = livePoints[myGroup] || 0;
+      if (curPts < item.pts) { toast('Not enough points!', false); return; }
+      const newPts = curPts - item.pts;
+      await set(ref(db, 'points/' + myGroup), newPts);
+      await push(ref(db, 'transactions'), {
+        group: myGroup, desc: `Store: ${item.name}`,
+        pts: -item.pts, type: 'purchase', ts: Date.now()
+      });
+      toast(`Redeemed ${item.name}!`, true);
+    });
+  });
+}
+
+// ── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const filtered = currentRole === 'leader' ? liveTx.filter(t => t.group === myGroup) : liveTx;
+  if (!filtered.length) return `<div class="empty-state">No transactions yet</div>`;
+  return filtered.map(t => {
+    const isPlus = t.pts > 0;
+    const g = getGroupMeta(t.group);
+    const d = new Date(t.ts);
+    const timeStr = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · ' + d.toLocaleDateString([], {month:'short', day:'numeric'});
+    return `<div class="tx-item">
+      <div class="tx-icon ${isPlus ? 'tx-plus' : 'tx-minus'}">${isPlus ? '＋' : '−'}</div>
+      <div class="tx-body">
+        <div class="tx-desc">${t.desc}</div>
+        <div class="tx-grp" style="color:${g.color}">${t.group}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="tx-amt" style="color:${isPlus ? '#10B981' : '#EF4444'}">${isPlus ? '+' : ''}${t.pts}</div>
+        <div class="tx-time">${timeStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+function renderAdmin() {
+  const sorted = [...GROUPS].sort((a,b) => (livePoints[b.id]||0) - (livePoints[a.id]||0));
+  const max = Math.max(...GROUPS.map(g => livePoints[g.id]||0), 1);
+  return `
+  <div class="admin-card">
+    <div class="admin-card-title">Log activity points</div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-lbl">Group</label>
+        <select class="form-select" id="a-group">
+          ${GROUPS.map(g => `<option value="${g.id}">${g.id}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Type</label>
+        <select class="form-select" id="a-type">
+          <option value="1">Award</option>
+          <option value="-1">Deduct</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-lbl">Activity</label>
+        <input class="form-input" type="text" id="a-activity" placeholder="e.g. Morning challenge"/>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Points</label>
+        <input class="form-input" type="number" id="a-pts" value="50" min="1"/>
+      </div>
+    </div>
+    <button class="log-btn" id="log-btn">Log points</button>
+  </div>
+  <div class="sec">Current standings</div>
+  ${sorted.map(g => {
+    const pts = livePoints[g.id] || 0;
+    const pct = Math.round(pts / max * 100);
+    return `<div class="grp-card">
+      <div class="grp-dot" style="background:${g.light};color:${g.dark}">${g.init}</div>
+      <div class="grp-name">${g.id}</div>
+      <div class="grp-bar-wrap"><div class="grp-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      <div class="grp-pts" style="color:${g.color}">${pts.toLocaleString()}</div>
+    </div>`;
+  }).join('')}`;
+}
+
+function attachAdminForm() {
+  document.getElementById('log-btn').addEventListener('click', async () => {
+    const gid  = document.getElementById('a-group').value;
+    const act  = document.getElementById('a-activity').value.trim() || 'Activity';
+    const pts  = parseInt(document.getElementById('a-pts').value) || 0;
+    const type = parseInt(document.getElementById('a-type').value);
+    const delta = pts * type;
+    const cur = livePoints[gid] || 0;
+    const newVal = Math.max(0, cur + delta);
+    await set(ref(db, 'points/' + gid), newVal);
+    await push(ref(db, 'transactions'), {
+      group: gid, desc: act, pts: delta, type: 'activity', ts: Date.now()
+    });
+    document.getElementById('a-activity').value = '';
+    toast(`${delta > 0 ? '+' : ''}${delta} pts → ${gid}`, true);
+  });
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, ok) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (ok ? 'ok' : 'err');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+initDB().then(() => {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('splash').style.display = 'flex';
+});
+</script>
+</body>
+</html>
