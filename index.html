@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LDC 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#1A0F05;--surface:#241508;--surface2:#2E1B0A;--surface3:#3A2210;
+  --border:rgba(255,180,80,0.12);--border2:rgba(255,180,80,0.22);
+  --text:#FDF0DC;--muted:#A07850;--accent:#F97316;--accent2:#FBBF24;--glow:rgba(249,115,22,0.18);
+  --ob:#3B82F6;--ob-light:rgba(59,130,246,0.15);--ob-dark:#93C5FD;
+  --rv:#10B981;--rv-light:rgba(16,185,129,0.15);--rv-dark:#6EE7B7;
+  --sr:#A855F7;--sr-light:rgba(168,85,247,0.15);--sr-dark:#D8B4FE;
+  --dc:#EF4444;--dc-light:rgba(239,68,68,0.15);--dc-dark:#FCA5A5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
+.fire-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.fire-bg::before{content:'';position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse at center bottom,rgba(251,143,36,0.18) 0%,rgba(239,68,68,0.08) 40%,transparent 70%);border-radius:50%;}
+.fire-bg::after{content:'';position:absolute;top:0;left:0;right:0;height:180px;background:linear-gradient(180deg,rgba(251,113,22,0.06) 0%,transparent 100%);}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;width:2px;height:2px;background:#FDF0DC;border-radius:50%;animation:twinkle var(--d,3s) var(--delay,0s) infinite;}
+@keyframes twinkle{0%,100%{opacity:0.15;}50%{opacity:0.7;}}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;gap:14px;}
+.loading-flame{font-size:40px;animation:flicker 0.8s infinite alternate;}
+@keyframes flicker{from{transform:scale(1) rotate(-2deg);}to{transform:scale(1.1) rotate(2deg);}}
+.loading-text{font-family:'Syne',sans-serif;font-size:13px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
+#splash{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:8px;padding:24px;}
+.splash-flame{font-size:52px;margin-bottom:4px;animation:flicker 0.9s infinite alternate;}
+.splash-title{font-family:'Syne',sans-serif;font-size:clamp(44px,10vw,88px);font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,#FDF0DC 0%,#FBBF24 40%,#F97316 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.splash-sub{font-size:13px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;}
+.splash-divider{width:48px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:8px 0 20px;}
+.splash-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.splash-btn{padding:14px 30px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;border:none;transition:transform 0.15s,box-shadow 0.15s;}
+.splash-btn:hover{transform:translateY(-2px);}
+.btn-leader{background:linear-gradient(135deg,#F97316,#FBBF24);color:#1A0F05;box-shadow:0 4px 24px rgba(249,115,22,0.35);}
+.btn-leader:hover{box-shadow:0 6px 32px rgba(249,115,22,0.5);}
+.btn-admin{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+#admin-login{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:99;}
+.login-card{background:var(--surface);border:1px solid var(--border2);border-radius:22px;padding:40px;width:340px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.login-flame{font-size:32px;margin-bottom:12px;display:block;text-align:center;}
+.login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;text-align:center;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:24px;text-align:center;}
+.f-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:12px;outline:none;transition:border-color 0.15s;}
+.f-input:focus{border-color:var(--accent);}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#F97316,#FBBF24);color:#1A0F05;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.login-err{font-size:12px;color:#FCA5A5;margin-top:10px;display:none;text-align:center;}
+.back-link{font-size:13px;color:var(--muted);cursor:pointer;margin-top:16px;display:block;text-align:center;}
+.back-link:hover{color:var(--text);}
+#group-pick{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:98;gap:14px;padding:24px;}
+.pick-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;text-align:center;}
+.pick-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:8px;}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:400px;}
+.pick-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 16px;cursor:pointer;transition:transform 0.15s,border-color 0.2s;text-align:center;}
+.pick-card:hover{transform:translateY(-3px);}
+.pick-dot{width:42px;height:42px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.pick-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;}
+#app{display:none;height:100vh;flex-direction:column;position:relative;z-index:1;}
+.topbar{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(26,15,5,0.92);backdrop-filter:blur(12px);gap:10px;flex-shrink:0;}
+.topbar-logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;background:linear-gradient(90deg,#FBBF24,#F97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.topbar-badge{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;}
+.topbar-pts{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.notif-bell{position:relative;cursor:pointer;margin-left:auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);font-size:15px;flex-shrink:0;transition:background 0.15s;}
+.notif-bell:hover{background:var(--surface3);}
+.notif-dot{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#EF4444;border:2px solid var(--bg);display:none;}
+.notif-dot.show{display:block;}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:rgba(26,15,5,0.92);backdrop-filter:blur(12px);flex-shrink:0;overflow-x:auto;}
+.tab{flex:1;min-width:60px;padding:11px 6px;text-align:center;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s;white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent);}
+.pages{flex:1;overflow-y:auto;padding:18px 14px 32px;}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp 0.22s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.sec{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:2px;display:flex;align-items:center;gap:8px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:14px;color:var(--accent2);}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;}
+.stat-box::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 120%,var(--glow),transparent 70%);pointer-events:none;}
+.stat-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--accent2);}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.grp-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:11px;}
+.grp-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;flex-shrink:0;}
+.grp-name{flex:1;font-size:13px;font-weight:500;}
+.grp-bar-wrap{flex:2;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+.grp-bar{height:100%;border-radius:3px;transition:width 0.6s cubic-bezier(.4,0,.2,1);}
+.grp-pts{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;min-width:58px;text-align:right;}
+.lb-row{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;}
+.lb-row.me{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.lb-rank{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;min-width:26px;}
+.store-header{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.store-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.store-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;}
+.s-emoji{font-size:28px;margin-bottom:8px;display:block;}
+.s-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:3px;}
+.s-desc{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.s-footer{display:flex;align-items:center;justify-content:space-between;}
+.s-pts{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);}
+.s-btn{font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.12s;}
+.s-btn:hover{background:var(--surface3);}
+.s-btn:disabled{opacity:0.3;cursor:default;}
+.tx-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.tx-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.tx-plus{background:rgba(16,185,129,0.15);}
+.tx-minus{background:rgba(239,68,68,0.15);}
+.tx-body{flex:1;}
+.tx-desc{font-size:13px;font-weight:500;}
+.tx-grp{font-size:11px;color:var(--muted);margin-top:1px;}
+.tx-amt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.tx-time{font-size:11px;color:var(--muted);}
+.tx-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px;flex-shrink:0;}
+.tx-del:hover{color:#FCA5A5;background:rgba(239,68,68,0.1);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.form-field{display:flex;flex-direction:column;gap:5px;}
+.form-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.form-input,.form-select{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%;transition:border-color 0.15s;}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+.form-select option{background:var(--surface2);}
+.submit-btn{width:100%;margin-top:6px;padding:13px;background:linear-gradient(135deg,#F97316,#FBBF24);color:#1A0F05;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
+.submit-btn:hover{opacity:0.88;}
+.submit-btn.danger{background:linear-gradient(135deg,#EF4444,#F97316);color:#fff;}
+.clear-all-btn{width:100%;margin-top:4px;padding:10px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:#FCA5A5;transition:background 0.15s;}
+.clear-all-btn:hover{background:rgba(239,68,68,0.1);}
+.sm-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.sm-emoji{font-size:20px;flex-shrink:0;}
+.sm-body{flex:1;}
+.sm-name{font-size:13px;font-weight:600;}
+.sm-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.sm-pts{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.sm-del{background:transparent;border:1px solid rgba(239,68,68,0.3);color:#FCA5A5;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sm-del:hover{background:rgba(239,68,68,0.12);}
+.bid-banner{background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(251,191,36,0.1));border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:14px;text-align:center;}
+.bid-banner-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:4px;}
+.bid-timer{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);letter-spacing:-1px;}
+.bid-timer.ending{color:#EF4444;animation:pulse 0.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.bid-status{font-size:11px;color:var(--muted);margin-top:4px;}
+.bid-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+.bid-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bid-emoji{font-size:26px;}
+.bid-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;flex:1;}
+.bid-desc{font-size:11px;color:var(--muted);margin-bottom:10px;}
+.bid-current{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.bid-current-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.bid-current-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent2);}
+.bid-current-by{font-size:11px;color:var(--muted);margin-top:2px;}
+.bid-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.bid-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.bid-row-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bid-row-name{flex:1;color:var(--muted);}
+.bid-row-pts{font-family:'Syne',sans-serif;font-weight:600;color:var(--text);}
+.bid-row-pts.leading{color:var(--accent2);}
+.bid-input-row{display:flex;gap:8px;}
+.bid-input{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;flex:1;transition:border-color 0.15s;}
+.bid-input:focus{border-color:var(--accent);}
+.bid-btn{padding:9px 16px;border-radius:9px;background:linear-gradient(135deg,#F97316,#FBBF24);color:#1A0F05;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.bid-btn:disabled{opacity:0.3;cursor:default;}
+.bid-won-badge{display:inline-flex;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(16,185,129,0.15);color:#6EE7B7;margin-top:6px;}
+.bid-closed{text-align:center;padding:10px 0 4px;font-size:12px;color:var(--muted);}
+.bid-refund-note{font-size:11px;color:var(--muted);margin-top:6px;text-align:center;}
+#notif-panel{position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--surface);border-left:1px solid var(--border2);z-index:200;display:flex;flex-direction:column;transition:right 0.25s cubic-bezier(.4,0,.2,1);}
+#notif-panel.open{right:0;}
+.notif-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.notif-header-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent2);}
+.notif-close{cursor:pointer;color:var(--muted);font-size:20px;}
+.notif-close:hover{color:var(--text);}
+.notif-list{flex:1;overflow-y:auto;padding:10px;}
+.notif-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:8px;}
+.notif-item.unread{border-color:var(--accent);}
+.notif-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.notif-group-lbl{font-size:12px;font-weight:600;}
+.notif-time{font-size:11px;color:var(--muted);}
+.notif-item-body{font-size:13px;margin-bottom:3px;}
+.notif-item-pts{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#EF4444;}
+.notif-fulfill{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;margin-top:8px;font-family:'DM Sans',sans-serif;}
+.notif-fulfill:hover{color:var(--text);}
+.notif-fulfilled{font-size:11px;color:#10B981;margin-top:6px;}
+.notif-clear{width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.notif-clear:hover{background:var(--surface2);color:var(--text);}
+#notif-overlay{position:fixed;inset:0;z-index:199;display:none;}
+#notif-overlay.show{display:block;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:500;transition:transform 0.3s cubic-bezier(.4,0,.2,1),opacity 0.3s;opacity:0;z-index:300;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+#toast.ok{border-color:#F97316;color:#FBBF24;}
+#toast.err{border-color:#EF4444;color:#FCA5A5;}
+.empty-state{text-align:center;padding:36px 0;color:var(--muted);font-size:14px;}
+select{-webkit-appearance:auto;}
+</style>
+</head>
+<body>
+<div class="fire-bg"></div>
+<div class="stars" id="stars"></div>
+<div id="loading"><div class="loading-flame">🔥</div><div class="loading-text">Lighting the campfire…</div></div>
+
+<div id="splash">
+  <div class="splash-flame">🏕️</div>
+  <div class="splash-title">LDC 2026</div>
+  <div class="splash-sub">Leadership Development Camp</div>
+  <div class="splash-divider"></div>
+  <div class="splash-btns">
+    <button class="splash-btn btn-leader" onclick="showGroupPick()">I'm a Group Leader</button>
+    <button class="splash-btn btn-admin" onclick="showAdminLogin()">Admin</button>
+  </div>
+</div>
+
+<div id="admin-login">
+  <div class="login-card">
+    <span class="login-flame">🔥</span>
+    <div class="login-title">Admin access</div>
+    <div class="login-sub">Enter the admin password</div>
+    <input class="f-input" type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="login-btn" onclick="tryLogin()">Sign in</button>
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+    <div class="back-link" onclick="backToSplash()">← Back</div>
+  </div>
+</div>
+
+<div id="group-pick">
+  <div class="pick-title">🏕️ Select your group</div>
+  <div class="pick-sub">Choose the group you lead</div>
+  <div class="pick-grid">
+    <div class="pick-card" onclick="enterAsLeader('Obedience')" style="border-color:rgba(59,130,246,0.3);">
+      <div class="pick-dot" style="background:var(--ob-light);color:var(--ob-dark);">OB</div>
+      <div class="pick-name" style="color:#93C5FD;">Obedience</div>
+    </div>
+    <div class="pick-card" onclick="enterAsLeader('Reverence')" style="border-color:rgba(16,185,129,0.3);">
+      <div class="pick-dot" style="background:var(--rv-light);color:var(--rv-dark);">RV</div>
+      <div class="pick-name" style="color:#6EE7B7;">Reverence</div>
+    </div>
+    <div class="pick-card" onclick="enterAsLeader('Self-Respect')" style="border-color:rgba(168,85,247,0.3);">
+      <div class="pick-dot" style="background:var(--sr-light);color:var(--sr-dark);">SR</div>
+      <div class="pick-name" style="color:#D8B4FE;">Self-Respect</div>
+    </div>
+    <div class="pick-card" onclick="enterAsLeader('Discipline')" style="border-color:rgba(239,68,68,0.3);">
+      <div class="pick-dot" style="background:var(--dc-light);color:var(--dc-dark);">DC</div>
+      <div class="pick-name" style="color:#FCA5A5;">Discipline</div>
+    </div>
+  </div>
+  <div class="back-link" onclick="backToSplash()">← Back</div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">🔥 LDC 2026</div>
+    <div style="display:flex;align-items:center;gap:9px;margin-left:auto;">
+      <span class="topbar-badge" id="topbar-badge"></span>
+      <span class="topbar-pts" id="topbar-pts"></span>
+      <div class="notif-bell" id="notif-bell" style="display:none;" onclick="toggleNotifPanel()">🛒<div class="notif-dot" id="notif-dot"></div></div>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="pages" id="pages"></div>
+</div>
+
+<div id="notif-overlay" onclick="closeNotifPanel()"></div>
+<div id="notif-panel">
+  <div class="notif-header">
+    <div class="notif-header-title">🛒 Purchase requests</div>
+    <div class="notif-close" onclick="closeNotifPanel()">×</div>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+  <div style="padding:10px;"><button class="notif-clear" onclick="markAllFulfilled()">Mark all as fulfilled</button></div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, get, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyC2fS4l4cjUQwOWEcWthJHKAYZCdvA7Cec",
+  authDomain:"ldc2026-4d566.firebaseapp.com",
+  databaseURL:"https://ldc2026-4d566-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"ldc2026-4d566",
+  storageBucket:"ldc2026-4d566.firebasestorage.app",
+  messagingSenderId:"397142638670",
+  appId:"1:397142638670:web:d2f225a5540233035b831f"
+};
+const ADMIN_PASSWORD = "ldc2026admin";
+const MIN_BID = 50;
+
+const GROUPS = [
+  {id:'Obedience',   init:'OB',color:'#3B82F6',light:'rgba(59,130,246,0.15)', dark:'#93C5FD'},
+  {id:'Reverence',   init:'RV',color:'#10B981',light:'rgba(16,185,129,0.15)',dark:'#6EE7B7'},
+  {id:'Self-Respect',init:'SR',color:'#A855F7',light:'rgba(168,85,247,0.15)',dark:'#D8B4FE'},
+  {id:'Discipline',  init:'DC',color:'#EF4444',light:'rgba(239,68,68,0.15)', dark:'#FCA5A5'},
+];
+const DEFAULT_STORE=[
+  {emoji:'🍫',name:'Snack pack',     desc:'Assorted snacks for your group',      pts:30},
+  {emoji:'🏅',name:'Bonus badge',    desc:'Exclusive LDC 2026 achievement badge', pts:80},
+  {emoji:'⏰',name:'Extra free time',desc:'30 min extra leisure time',            pts:120},
+  {emoji:'🎮',name:'Game night pass',desc:'Priority seat at game night',          pts:60},
+];
+
+const fbApp=initializeApp(firebaseConfig);
+const db=getDatabase(fbApp);
+
+let currentRole=null,myGroup=null;
+let livePoints={},liveTx=[],liveStore=[];
+let livePurchaseNotifs={},liveBids={},liveBidItems={};
+let bidTimerInterval=null,activePage='';
+
+// Stars
+(()=>{const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*60}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;opacity:${0.1+Math.random()*0.5}`;c.appendChild(s);}})();
+
+async function initDB(){
+  const ps=await get(ref(db,'points'));
+  if(!ps.exists()){const o={};GROUPS.forEach(g=>o[g.id]=0);await set(ref(db,'points'),o);}
+  const ss=await get(ref(db,'store'));
+  if(!ss.exists()){const o={};DEFAULT_STORE.forEach((x,i)=>o['item'+i]=x);await set(ref(db,'store'),o);}
+}
+
+function startListeners(){
+  onValue(ref(db,'points'),s=>{livePoints=s.val()||{};renderCurrentPage();updateTopbar();});
+  onValue(ref(db,'transactions'),s=>{const r=s.val()||{};liveTx=Object.entries(r).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts);renderCurrentPage();});
+  onValue(ref(db,'store'),s=>{const r=s.val()||{};liveStore=Object.entries(r).map(([k,v])=>({...v,_key:k}));renderCurrentPage();});
+  onValue(ref(db,'bidItems'),s=>{liveBidItems=s.val()||{};renderCurrentPage();});
+  onValue(ref(db,'bids'),s=>{liveBids=s.val()||{};renderCurrentPage();});
+  if(currentRole==='admin'){
+    onValue(ref(db,'purchaseNotifs'),s=>{livePurchaseNotifs=s.val()||{};renderNotifPanel();updateNotifDot();});
+  }
+}
+
+window.showGroupPick=()=>{document.getElementById('splash').style.display='none';document.getElementById('group-pick').style.display='flex';};
+window.showAdminLogin=()=>{document.getElementById('splash').style.display='none';document.getElementById('admin-login').style.display='flex';};
+window.backToSplash=()=>{document.getElementById('admin-login').style.display='none';document.getElementById('group-pick').style.display='none';document.getElementById('splash').style.display='flex';};
+window.tryLogin=()=>{
+  if(document.getElementById('pw-input').value===ADMIN_PASSWORD){currentRole='admin';myGroup=null;document.getElementById('admin-login').style.display='none';launchApp();}
+  else{document.getElementById('login-err').style.display='block';}
+};
+window.enterAsLeader=gid=>{currentRole='leader';myGroup=gid;document.getElementById('group-pick').style.display='none';launchApp();};
+
+function launchApp(){
+  buildTabs();
+  if(currentRole==='admin')document.getElementById('notif-bell').style.display='flex';
+  document.getElementById('app').style.display='flex';
+  updateTopbar();
+  showTab(currentRole==='admin'?'admin':'dashboard');
+  startListeners();
+}
+
+function getG(id){return GROUPS.find(g=>g.id===id)||GROUPS[0];}
+
+function updateTopbar(){
+  const badge=document.getElementById('topbar-badge'),pts=document.getElementById('topbar-pts');
+  if(currentRole==='admin'){
+    badge.textContent='ADMIN';badge.style.cssText='background:rgba(249,115,22,0.2);color:#FBBF24;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;';pts.textContent='';
+  }else{
+    const m=getG(myGroup);
+    badge.textContent=m.init;badge.style.cssText=`background:${m.light};color:${m.dark};padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;`;
+    pts.textContent=(livePoints[myGroup]||0)+' pts';pts.style.color=m.color;
+  }
+}
+
+function buildTabs(){
+  const tabs=currentRole==='admin'
+    ?[['admin','Points'],['store-mgr','Store'],['bidding-admin','Bidding'],['dashboard','Dashboard'],['leaderboard','Ranks'],['history','History']]
+    :[['dashboard','Dashboard'],['leaderboard','Leaderboard'],['store','Store'],['bidding','Bidding'],['history','History']];
+  document.getElementById('tabs').innerHTML=tabs.map(([id,label])=>`<div class="tab" id="tab-${id}" onclick="showTab('${id}')">${label}</div>`).join('');
+}
+
+window.showTab=id=>{
+  activePage=id;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const t=document.getElementById('tab-'+id);if(t)t.classList.add('active');
+  renderPage(id);
+};
+function renderCurrentPage(){if(activePage)renderPage(activePage);}
+
+function renderPage(id){
+  const pages=document.getElementById('pages');
+  let html='';
+  if(id==='dashboard')     html=renderDashboard();
+  if(id==='leaderboard')   html=renderLeaderboard();
+  if(id==='store')         html=renderStore();
+  if(id==='history')       html=renderHistory();
+  if(id==='admin')         html=renderAdmin();
+  if(id==='store-mgr')     html=renderStoreMgr();
+  if(id==='bidding')       html=renderBidding();
+  if(id==='bidding-admin') html=renderBiddingAdmin();
+  pages.innerHTML=`<div class="page active">${html}</div>`;
+  if(id==='store')         attachStoreBtns();
+  if(id==='admin')         attachAdminForm();
+  if(id==='store-mgr')     attachStoreMgrForm();
+  if(id==='bidding')       attachBidForms();
+  if(id==='bidding-admin') attachBidAdminForms();
+  if(id==='history')       attachHistoryDelete();
+  startBidTimers();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const total=Object.values(livePoints).reduce((s,v)=>s+v,0);
+  const purchases=liveTx.filter(t=>t.type==='purchase').length;
+  const sorted=[...GROUPS].sort((a,b)=>(livePoints[b.id]||0)-(livePoints[a.id]||0));
+  const max=Math.max(...GROUPS.map(g=>livePoints[g.id]||0),1);
+  return `<div class="stat-row">
+    <div class="stat-box"><div class="stat-val">${GROUPS.length}</div><div class="stat-lbl">Groups</div></div>
+    <div class="stat-box"><div class="stat-val">${total.toLocaleString()}</div><div class="stat-lbl">Pts Total</div></div>
+    <div class="stat-box"><div class="stat-val">${purchases}</div><div class="stat-lbl">Purchases</div></div>
+  </div>
+  <div class="sec">Group standings</div>
+  ${sorted.map(g=>{
+    const pts=livePoints[g.id]||0,pct=Math.round(pts/max*100),isMe=g.id===myGroup;
+    return `<div class="grp-card" style="${isMe?`border-color:${g.color};box-shadow:0 0 0 1px ${g.color}`:''}">
+      <div class="grp-dot" style="background:${g.light};color:${g.dark}">${g.init}</div>
+      <div class="grp-name">${g.id}${isMe?' <span style="font-size:10px;color:var(--muted)">(you)</span>':''}</div>
+      <div class="grp-bar-wrap"><div class="grp-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      <div class="grp-pts" style="color:${g.color}">${pts.toLocaleString()}</div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+function renderLeaderboard(){
+  const sorted=[...GROUPS].sort((a,b)=>(livePoints[b.id]||0)-(livePoints[a.id]||0));
+  const trophies=['🥇','🥈','🥉',''];
+  return `<div class="sec">Rankings</div>
+  ${sorted.map((g,i)=>{
+    const pts=livePoints[g.id]||0,isMe=g.id===myGroup;
+    return `<div class="lb-row ${isMe?'me':''}">
+      <div class="lb-rank" style="color:${g.color}">${i+1}</div>
+      <div class="grp-dot" style="background:${g.light};color:${g.dark};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:10px;font-weight:700;flex-shrink:0">${g.init}</div>
+      <div style="flex:1;font-size:13px;font-weight:500;">${g.id}${isMe?' <span style="font-size:10px;color:var(--muted)">(you)</span>':''}</div>
+      <span style="font-size:16px">${trophies[i]||''}</span>
+      <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:${g.color}">${pts.toLocaleString()} pts</div>
+    </div>`;
+  }).join('')}`;
+}
+
+// ── STORE ─────────────────────────────────────────────────────────────────────
+function renderStore(){
+  const myPts=livePoints[myGroup]||0;
+  if(!liveStore.length)return`<div class="empty-state">🏪 No items in store yet</div>`;
+  return `<div class="store-header">
+    <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Purchasing as</div><div style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;">${myGroup}</div></div>
+    <div style="text-align:right"><div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Available</div><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:var(--accent)">${myPts} pts</div></div>
+  </div>
+  <div class="sec">Rewards</div>
+  <div class="store-grid">${liveStore.map(item=>{
+    const canBuy=myPts>=item.pts;
+    return `<div class="store-card">
+      <span class="s-emoji">${item.emoji}</span>
+      <div class="s-name">${item.name}</div>
+      <div class="s-desc">${item.desc||''}</div>
+      <div class="s-footer">
+        <span class="s-pts">${item.pts} pts</span>
+        <button class="s-btn" data-key="${item._key}" data-name="${item.name}" data-pts="${item.pts}" data-emoji="${item.emoji}" ${!canBuy?'disabled':''}>Redeem</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function attachStoreBtns(){
+  document.querySelectorAll('.s-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const pts=parseInt(btn.dataset.pts),name=btn.dataset.name,emoji=btn.dataset.emoji;
+      const cur=livePoints[myGroup]||0;
+      if(cur<pts){toast('Not enough points!',false);return;}
+      await set(ref(db,'points/'+myGroup),cur-pts);
+      await push(ref(db,'transactions'),{group:myGroup,desc:`Store: ${name}`,pts:-pts,type:'purchase',ts:Date.now()});
+      await push(ref(db,'purchaseNotifs'),{group:myGroup,item:name,emoji,pts,ts:Date.now(),fulfilled:false});
+      toast(`Redeemed ${name}! Collect from admin 🎉`,true);
+    });
+  });
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function renderHistory(){
+  const filtered=currentRole==='leader'?liveTx.filter(t=>t.group===myGroup):liveTx;
+  if(!filtered.length)return`<div class="empty-state">🌿 No transactions yet</div>`;
+  const isAdmin=currentRole==='admin';
+  return `
+  ${isAdmin?`<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><button class="clear-all-btn" style="width:auto;padding:8px 16px;" id="clear-all-tx">🗑 Clear all history</button></div>`:''}
+  ${filtered.map(t=>{
+    const isPlus=t.pts>0,g=getG(t.group),d=new Date(t.ts);
+    const ts=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString([],{month:'short',day:'numeric'});
+    return `<div class="tx-item">
+      <div class="tx-icon ${isPlus?'tx-plus':'tx-minus'}">${isPlus?'＋':'−'}</div>
+      <div class="tx-body"><div class="tx-desc">${t.desc}</div><div class="tx-grp" style="color:${g.color}">${t.group}</div></div>
+      <div style="text-align:right">
+        <div class="tx-amt" style="color:${isPlus?'#10B981':'#EF4444'}">${isPlus?'+':''}${t.pts}</div>
+        <div class="tx-time">${ts}</div>
+      </div>
+      ${isAdmin?`<button class="tx-del" data-key="${t._key}" title="Delete">🗑</button>`:''}
+    </div>`;
+  }).join('')}`;
+}
+function attachHistoryDelete(){
+  document.querySelectorAll('.tx-del').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      await remove(ref(db,'transactions/'+btn.dataset.key));
+      toast('Log entry deleted',true);
+    });
+  });
+  const clearAll=document.getElementById('clear-all-tx');
+  if(clearAll){
+    clearAll.addEventListener('click',async()=>{
+      if(!confirm('Delete ALL transaction history? This cannot be undone.'))return;
+      await remove(ref(db,'transactions'));
+      toast('History cleared',true);
+    });
+  }
+}
+
+// ── ADMIN POINTS ──────────────────────────────────────────────────────────────
+function renderAdmin(){
+  const sorted=[...GROUPS].sort((a,b)=>(livePoints[b.id]||0)-(livePoints[a.id]||0));
+  const max=Math.max(...GROUPS.map(g=>livePoints[g.id]||0),1);
+  return `<div class="card">
+    <div class="card-title">Log activity points</div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Group</label>
+        <select class="form-select" id="a-group">${GROUPS.map(g=>`<option value="${g.id}">${g.id}</option>`).join('')}</select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Type</label>
+        <select class="form-select" id="a-type"><option value="1">Award</option><option value="-1">Deduct</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Activity</label><input class="form-input" type="text" id="a-activity" placeholder="e.g. Morning challenge"/></div>
+      <div class="form-field"><label class="form-lbl">Points</label><input class="form-input" type="number" id="a-pts" value="50" min="1"/></div>
+    </div>
+    <button class="submit-btn" id="log-btn">Log points 🔥</button>
+  </div>
+  <div class="sec">Current standings</div>
+  ${sorted.map(g=>{
+    const pts=livePoints[g.id]||0,pct=Math.round(pts/max*100);
+    return `<div class="grp-card">
+      <div class="grp-dot" style="background:${g.light};color:${g.dark}">${g.init}</div>
+      <div class="grp-name">${g.id}</div>
+      <div class="grp-bar-wrap"><div class="grp-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      <div class="grp-pts" style="color:${g.color}">${pts.toLocaleString()}</div>
+    </div>`;
+  }).join('')}`;
+}
+function attachAdminForm(){
+  document.getElementById('log-btn').addEventListener('click',async()=>{
+    const gid=document.getElementById('a-group').value;
+    const act=document.getElementById('a-activity').value.trim()||'Activity';
+    const pts=parseInt(document.getElementById('a-pts').value)||0;
+    const type=parseInt(document.getElementById('a-type').value);
+    const delta=pts*type;
+    await set(ref(db,'points/'+gid),Math.max(0,(livePoints[gid]||0)+delta));
+    await push(ref(db,'transactions'),{group:gid,desc:act,pts:delta,type:'activity',ts:Date.now()});
+    document.getElementById('a-activity').value='';
+    toast(`${delta>0?'+':''}${delta} pts → ${gid}`,true);
+  });
+}
+
+// ── STORE MANAGER ─────────────────────────────────────────────────────────────
+function renderStoreMgr(){
+  return `<div class="card">
+    <div class="card-title">Add store item</div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Emoji</label><input class="form-input" type="text" id="sm-emoji" placeholder="🎁" maxlength="2"/></div>
+      <div class="form-field"><label class="form-lbl">Points cost</label><input class="form-input" type="number" id="sm-pts" placeholder="50" min="1"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Item name</label><input class="form-input" type="text" id="sm-name" placeholder="e.g. Snack pack"/></div>
+      <div class="form-field"><label class="form-lbl">Description</label><input class="form-input" type="text" id="sm-desc" placeholder="Short description"/></div>
+    </div>
+    <button class="submit-btn" id="sm-add-btn">Add to store 🏪</button>
+  </div>
+  <div class="sec">Store items (${liveStore.length})</div>
+  ${!liveStore.length?'<div class="empty-state">No items yet</div>':''}
+  ${liveStore.map(item=>`
+    <div class="sm-item">
+      <div class="sm-emoji">${item.emoji}</div>
+      <div class="sm-body"><div class="sm-name">${item.name}</div><div class="sm-meta">${item.desc||''}</div></div>
+      <div class="sm-pts">${item.pts} pts</div>
+      <button class="sm-del" data-key="${item._key}">Remove</button>
+    </div>`).join('')}`;
+}
+function attachStoreMgrForm(){
+  document.getElementById('sm-add-btn').addEventListener('click',async()=>{
+    const emoji=document.getElementById('sm-emoji').value.trim()||'🎁';
+    const name=document.getElementById('sm-name').value.trim();
+    const desc=document.getElementById('sm-desc').value.trim();
+    const pts=parseInt(document.getElementById('sm-pts').value)||0;
+    if(!name){toast('Enter an item name',false);return;}
+    if(!pts){toast('Enter a points cost',false);return;}
+    await push(ref(db,'store'),{emoji,name,desc,pts});
+    ['sm-emoji','sm-name','sm-desc','sm-pts'].forEach(id=>document.getElementById(id).value='');
+    toast(`${name} added to store!`,true);
+  });
+  document.querySelectorAll('.sm-del').forEach(btn=>{
+    btn.addEventListener('click',async()=>{await remove(ref(db,'store/'+btn.dataset.key));toast('Item removed',true);});
+  });
+}
+
+// ── BIDDING (leader view) ─────────────────────────────────────────────────────
+function renderBidding(){
+  const items=Object.entries(liveBidItems);
+  if(!items.length)return`<div class="empty-state">🏕️ No active bid items yet.<br>Check back soon!</div>`;
+  const now=Date.now();
+  return items.map(([key,item])=>{
+    const bids=liveBids[key]||{};
+    const bidArr=Object.entries(bids).map(([g,b])=>({group:g,...b})).sort((a,b)=>b.amount-a.amount);
+    const leading=bidArr[0];
+    const myBid=bids[myGroup];
+    const ended=item.endsAt&&now>item.endsAt;
+    const winner=item.winner;
+    const isLeading=leading&&leading.group===myGroup;
+    const minBid=leading ? Math.max(MIN_BID, Math.ceil(leading.amount*1.20)) : Math.max(MIN_BID, item.startPts);
+
+    let timerHtml='';
+    if(!ended&&item.endsAt){
+      const secsLeft=Math.max(0,Math.round((item.endsAt-now)/1000));
+      timerHtml=`<div class="bid-banner">
+        <div class="bid-banner-title">⏱ Bidding closes in</div>
+        <div class="bid-timer ${secsLeft<60?'ending':''}" id="timer-${key}" data-ends="${item.endsAt}">${fmtTime(secsLeft)}</div>
+        <div class="bid-status">Winner pays full bid · Losers get 50% back</div>
+      </div>`;
+    } else if(ended){
+      timerHtml=`<div class="bid-banner" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);">
+        <div class="bid-banner-title" style="color:#FCA5A5;">🔒 Bidding closed</div>
+        ${winner?`<div style="font-size:13px;color:var(--muted);margin-top:4px;">Won by <strong style="color:${getG(winner).color}">${winner}</strong></div>`:'<div style="font-size:12px;color:var(--muted);margin-top:4px;">Awaiting admin to confirm winner</div>'}
+      </div>`;
+    }
+
+    return `${timerHtml}
+    <div class="bid-card">
+      <div class="bid-card-top">
+        <div class="bid-emoji">${item.emoji||'🎁'}</div>
+        <div><div class="bid-name">${item.name}</div><div style="font-size:11px;color:var(--muted)">Min bid: ${MIN_BID} pts</div></div>
+      </div>
+      ${item.desc?`<div class="bid-desc">${item.desc}</div>`:''}
+      <div class="bid-current">
+        <div class="bid-current-label">Current highest bid</div>
+        <div class="bid-current-val">${leading?leading.amount+' pts':'No bids yet'}</div>
+        ${leading?`<div class="bid-current-by">by <span style="color:${getG(leading.group).color}">${leading.group}</span>${isLeading?' 🔥 (you are leading!)':''}</div>`:''}
+      </div>
+      ${bidArr.length?`<div class="bid-rows">${bidArr.map((b,i)=>`
+        <div class="bid-row">
+          <div class="bid-row-dot" style="background:${getG(b.group).color}"></div>
+          <div class="bid-row-name">${b.group}${b.group===myGroup?' (you)':''}</div>
+          <div class="bid-row-pts ${i===0?'leading':''}">${b.amount} pts</div>
+        </div>`).join('')}</div>`:''}
+      ${myBid&&!winner?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Your current bid: <strong style="color:var(--accent2)">${myBid.amount} pts</strong> · You can raise it anytime</div>`:''}
+      ${winner
+        ?`<div class="bid-won-badge">${winner===myGroup?'🏆 Your group won!':'🏆 Won by '+winner}</div>`
+        :!ended
+          ?`<div class="bid-input-row">
+              <input class="bid-input" type="number" id="bid-amt-${key}" placeholder="Min ${minBid} pts (20% above current)" min="${minBid}"/>
+              <button class="bid-btn" data-key="${key}" data-minbid="${minBid}">Bid</button>
+            </div>
+            <div class="bid-refund-note">Losers receive 50% of their bid back</div>`
+          :'<div class="bid-closed">Bidding ended — awaiting confirmation</div>'}
+    </div>`;
+  }).join('');
+}
+
+function attachBidForms(){
+  document.querySelectorAll('.bid-btn').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const key=btn.dataset.key;
+      const amt=parseInt(document.getElementById('bid-amt-'+key).value)||0;
+      const minBid=parseInt(btn.dataset.minbid);
+      const myPts=livePoints[myGroup]||0;
+      if(amt<MIN_BID){toast(`Minimum bid is ${MIN_BID} pts`,false);return;}
+      if(amt<minBid){toast(`Must bid at least ${minBid} pts (20% above current highest)`,false);return;}
+      if(amt>myPts){toast(`Not enough points! You have ${myPts} pts`,false);return;}
+      await set(ref(db,`bids/${key}/${myGroup}`),{amount:amt,ts:Date.now()});
+      toast(`Bid of ${amt} pts placed! 🔥`,true);
+    });
+  });
+}
+
+// ── BIDDING ADMIN ─────────────────────────────────────────────────────────────
+function renderBiddingAdmin(){
+  const items=Object.entries(liveBidItems);
+  const now=Date.now();
+  return `<div class="card">
+    <div class="card-title">Create bid item</div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Emoji</label><input class="form-input" type="text" id="ba-emoji" placeholder="🎁" maxlength="2"/></div>
+      <div class="form-field"><label class="form-lbl">Duration (minutes)</label><input class="form-input" type="number" id="ba-dur" placeholder="10" min="1"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-lbl">Item name</label><input class="form-input" type="text" id="ba-name" placeholder="e.g. Pizza dinner"/></div>
+      <div class="form-field"><label class="form-lbl">Description</label><input class="form-input" type="text" id="ba-desc" placeholder="Optional"/></div>
+    </div>
+    <button class="submit-btn" id="ba-add-btn">Start bidding 🔨</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;">Min first bid: ${MIN_BID} pts · Each raise must be ≥20% above current highest · Winner pays full · Losers get 50% back</div>
+  </div>
+  <div class="sec">Active & past bids</div>
+  ${!items.length?'<div class="empty-state">No bid items yet</div>':''}
+  ${items.map(([key,item])=>{
+    const bids=liveBids[key]||{};
+    const bidArr=Object.entries(bids).map(([g,b])=>({group:g,...b})).sort((a,b)=>b.amount-a.amount);
+    const leading=bidArr[0];
+    const ended=item.endsAt&&now>item.endsAt;
+    const secsLeft=item.endsAt?Math.max(0,Math.round((item.endsAt-now)/1000)):0;
+    return `<div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:22px">${item.emoji||'🎁'}</span>
+        <div style="flex:1"><div style="font-family:Syne,sans-serif;font-size:14px;font-weight:600;">${item.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${item.desc||''}</div>
+        </div>
+        ${!ended
+          ?`<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:var(--accent)" id="atimer-${key}" data-ends="${item.endsAt}">${fmtTime(secsLeft)}</div>`
+          :`<span style="font-size:11px;color:#FCA5A5;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);padding:3px 10px;border-radius:20px;">Ended</span>`}
+      </div>
+      ${bidArr.length?`<div class="bid-rows" style="margin-bottom:10px;">${bidArr.map((b,i)=>`
+        <div class="bid-row">
+          <div class="bid-row-dot" style="background:${getG(b.group).color}"></div>
+          <div class="bid-row-name">${b.group}</div>
+          <div class="bid-row-pts ${i===0?'leading':''}">${b.amount} pts</div>
+        </div>`).join('')}</div>`:'<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">No bids placed</div>'}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${ended&&leading&&!item.winner?`<button class="submit-btn" style="flex:1;margin-top:0;padding:9px;font-size:12px;" data-resolve="${key}" data-winner="${leading.group}" data-item-name="${item.name}" data-item-emoji="${item.emoji||'🎁'}">✓ Confirm winner: ${leading.group} (${leading.amount} pts)</button>`:''}
+        ${item.winner?`<div style="font-size:12px;color:#6EE7B7;flex:1;display:flex;align-items:center;">✓ Won by ${item.winner}</div>`:''}
+        <button class="submit-btn danger" style="flex:none;margin-top:0;padding:9px 14px;font-size:12px;width:auto;" data-delete="${key}">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+
+function attachBidAdminForms(){
+  document.getElementById('ba-add-btn').addEventListener('click',async()=>{
+    const emoji=document.getElementById('ba-emoji').value.trim()||'🎁';
+    const name=document.getElementById('ba-name').value.trim();
+    const desc=document.getElementById('ba-desc').value.trim();
+    const dur=parseInt(document.getElementById('ba-dur').value)||0;
+    if(!name){toast('Enter an item name',false);return;}
+    if(!dur){toast('Enter a duration',false);return;}
+    const endsAt=Date.now()+(dur*60*1000);
+    await push(ref(db,'bidItems'),{emoji,name,desc,startPts:MIN_BID,endsAt,createdAt:Date.now()});
+    ['ba-emoji','ba-name','ba-desc','ba-dur'].forEach(id=>document.getElementById(id).value='');
+    toast(`Bidding started for ${name}!`,true);
+  });
+
+  // Resolve winner — FIX: deduct first THEN refund losers 50%
+  document.querySelectorAll('[data-resolve]').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      const key=btn.dataset.resolve;
+      const winner=btn.dataset.winner;
+      const itemName=btn.dataset.itemName;
+      const itemEmoji=btn.dataset.itemEmoji;
+      const bids=liveBids[key]||{};
+      const bidArr=Object.entries(bids).map(([g,b])=>({group:g,...b})).sort((a,b)=>b.amount-a.amount);
+      if(!bidArr.length){toast('No bids to resolve',false);return;}
+
+      const winnerBid=bidArr[0].amount;
+
+      // 1. Deduct full bid from winner
+      const winnerCurPts=livePoints[winner]||0;
+      await set(ref(db,'points/'+winner), Math.max(0, winnerCurPts - winnerBid));
+      await push(ref(db,'transactions'),{group:winner,desc:`Bid won: ${itemName}`,pts:-winnerBid,type:'bid-win',ts:Date.now()});
+
+      // 2. Losers: deduct full bid, then return 50% (net loss = 50% of their bid)
+      for(let i=1;i<bidArr.length;i++){
+        const b=bidArr[i];
+        const fullBid=b.amount;
+        const refund=Math.floor(fullBid*0.5);
+        const netLoss=fullBid-refund;
+        const curPts=livePoints[b.group]||0;
+        // Deduct full bid first
+        await set(ref(db,'points/'+b.group), Math.max(0, curPts - fullBid));
+        await push(ref(db,'transactions'),{group:b.group,desc:`Bid lost: ${itemName} (−${fullBid} pts)`,pts:-fullBid,type:'bid-loss',ts:Date.now()});
+        // Then return 50%
+        if(refund>0){
+          const afterDeduct=livePoints[b.group]||0;
+          // Re-read from livePoints may be stale; compute from curPts
+          await set(ref(db,'points/'+b.group), Math.max(0, curPts - fullBid + refund));
+          await push(ref(db,'transactions'),{group:b.group,desc:`Bid refund 50%: ${itemName} (+${refund} pts)`,pts:refund,type:'bid-refund',ts:Date.now()});
+        }
+      }
+
+      // 3. Notify admin
+      await push(ref(db,'purchaseNotifs'),{group:winner,item:itemName,emoji:itemEmoji,pts:winnerBid,ts:Date.now(),fulfilled:false,type:'bid'});
+      await update(ref(db,'bidItems/'+key),{winner});
+      toast(`${winner} won ${itemName}! Points settled.`,true);
+    });
+  });
+
+  document.querySelectorAll('[data-delete]').forEach(btn=>{
+    btn.addEventListener('click',async()=>{
+      if(!confirm('Delete this bid item?'))return;
+      await remove(ref(db,'bidItems/'+btn.dataset.delete));
+      await remove(ref(db,'bids/'+btn.dataset.delete));
+      toast('Bid item deleted',true);
+    });
+  });
+}
+
+// ── TIMERS ────────────────────────────────────────────────────────────────────
+function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
+function startBidTimers(){
+  clearInterval(bidTimerInterval);
+  bidTimerInterval=setInterval(()=>{
+    const now=Date.now();
+    document.querySelectorAll('[data-ends]').forEach(el=>{
+      const ends=parseInt(el.dataset.ends);
+      const left=Math.max(0,Math.round((ends-now)/1000));
+      el.textContent=fmtTime(left);
+      if(left<60)el.classList.add('ending');
+      if(left===0){clearInterval(bidTimerInterval);renderCurrentPage();}
+    });
+  },1000);
+}
+
+// ── NOTIF PANEL ───────────────────────────────────────────────────────────────
+function renderNotifPanel(){
+  const list=document.getElementById('notif-list');
+  const notifs=Object.entries(livePurchaseNotifs).sort((a,b)=>b[1].ts-a[1].ts);
+  if(!notifs.length){list.innerHTML='<div class="empty-state">No purchases yet</div>';return;}
+  list.innerHTML=notifs.map(([key,n])=>{
+    const g=getG(n.group),d=new Date(n.ts);
+    const ts=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+d.toLocaleDateString([],{month:'short',day:'numeric'});
+    return `<div class="notif-item ${!n.fulfilled?'unread':''}">
+      <div class="notif-item-top"><span class="notif-group-lbl" style="color:${g.color}">${n.group}</span><span class="notif-time">${ts}</span></div>
+      <div class="notif-item-body">${n.emoji} <strong>${n.item}</strong>${n.type==='bid'?' 🔨 Bid won':''}</div>
+      <div class="notif-item-pts">−${n.pts} pts</div>
+      ${n.fulfilled?`<div class="notif-fulfilled">✓ Fulfilled</div>`:`<button class="notif-fulfill" data-key="${key}">Mark as given</button>`}
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.notif-fulfill').forEach(btn=>{
+    btn.addEventListener('click',async()=>{await update(ref(db,'purchaseNotifs/'+btn.dataset.key),{fulfilled:true});});
+  });
+}
+function updateNotifDot(){
+  const unread=Object.values(livePurchaseNotifs).some(n=>!n.fulfilled);
+  const dot=document.getElementById('notif-dot');if(dot)dot.classList.toggle('show',unread);
+}
+window.toggleNotifPanel=()=>{document.getElementById('notif-panel').classList.toggle('open');document.getElementById('notif-overlay').classList.toggle('show');};
+window.closeNotifPanel=()=>{document.getElementById('notif-panel').classList.remove('open');document.getElementById('notif-overlay').classList.remove('show');};
+window.markAllFulfilled=async()=>{
+  const upd={};Object.keys(livePurchaseNotifs).forEach(k=>upd[k+'/fulfilled']=true);
+  await update(ref(db,'purchaseNotifs'),upd);toast('All marked as fulfilled',true);
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg,ok){
+  const el=document.getElementById('toast');el.textContent=msg;
+  el.className='toast show '+(ok?'ok':'err');
+  clearTimeout(window._toastT);window._toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+initDB().then(()=>{
+  document.getElementById('loading').style.display='none';
+  document.getElementById('splash').style.display='flex';
+});
+</script>
+</body>
+</html>
